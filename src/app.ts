@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express, { type Request, type Response } from "express";
 import cors from "cors";
+import { verifyJWT } from "./middleware/verify-jwt.js";
 
 const app = express();
 
@@ -29,6 +30,10 @@ app.get("/api/health", (_req: Request, res: Response) => {
     message: "BhaloBeat API is running!",
     timestamp: new Date().toISOString(),
   });
+});
+
+app.get("/api/me", verifyJWT, (_req: Request, res: Response) => {
+  res.json({ success: true, user: res.locals.user });
 });
 
 export default app;
