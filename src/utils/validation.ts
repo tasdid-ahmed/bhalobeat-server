@@ -24,10 +24,10 @@ export type ParseResult =
   | { ok: true; data: EventInput }
   | { ok: false; message: string };
 
-// Events are stored at midnight UTC of their date; "today" still counts as upcoming.
-export function startOfTodayUTC(): Date {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+// "Today" as a calendar date in Dhaka, stored as midnight UTC (the same form events use).
+export function startOfToday(): Date {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dhaka" }).format(new Date());
+  return new Date(`${today}T00:00:00.000Z`);
 }
 
 function asText(value: unknown): string {
@@ -79,10 +79,10 @@ export function parseEventInput(body: unknown): ParseResult {
   }
 
   const date = new Date(`${dateText}T00:00:00.000Z`);
-  if (Number.isNaN(date.getTime())) {
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== dateText) {
     return { ok: false, message: "Please provide a valid event date." };
   }
-  if (date < startOfTodayUTC()) {
+  if (date < startOfToday()) {
     return { ok: false, message: "Event date cannot be in the past." };
   }
 
