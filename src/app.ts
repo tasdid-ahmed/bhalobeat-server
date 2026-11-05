@@ -5,7 +5,6 @@ import express, {
   type Response,
 } from "express";
 import cors from "cors";
-import helmet from "helmet";
 import { verifyJWT } from "./middleware/verify-jwt.js";
 import eventRoutes from "./routes/event.routes.js";
 
@@ -17,7 +16,17 @@ if (!CLIENT_URL || !AUTH_URL) {
 
 const app = express();
 
-app.use(helmet());
+app.disable("x-powered-by");
+
+// Basic security headers for a JSON API.
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
+  next();
+});
 
 // CLIENT_URL can hold several origins, separated by commas.
 const allowedOrigins = CLIENT_URL
