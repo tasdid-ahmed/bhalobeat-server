@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { eventsCollection, joinedEventsCollection } from "../config/collections.js";
 import type { AuthUser } from "../middleware/verify-jwt.js";
-import { parseObjectId, startOfTodayUTC } from "../utils/validation.js";
+import { parseObjectId, startOfToday } from "../utils/validation.js";
 
 export async function joinEvent(req: Request, res: Response): Promise<void> {
   const user = res.locals.user as AuthUser;
@@ -20,7 +20,7 @@ export async function joinEvent(req: Request, res: Response): Promise<void> {
       res.status(404).json({ success: false, message: "Event not found." });
       return;
     }
-    if (event.date < startOfTodayUTC()) {
+    if (event.date < startOfToday()) {
       res.status(400).json({ success: false, message: "This event has already taken place." });
       return;
     }
@@ -85,11 +85,13 @@ export async function getJoinedEvents(_req: Request, res: Response): Promise<voi
         },
         { $unwind: "$event" },
         { $sort: { "event.date": 1 } },
+        { $limit: 200 },
         {
           $replaceRoot: {
             newRoot: { $mergeObjects: ["$event", { joinedAt: "$joinedAt" }] },
           },
         },
+        { $project: { creatorEmail: 0 } },
       ])
       .toArray();
 

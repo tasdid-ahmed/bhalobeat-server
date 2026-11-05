@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { eventsCollection, joinedEventsCollection } from "../config/collections.js";
 import type { AuthUser } from "../middleware/verify-jwt.js";
+import { toPublicEvent } from "../utils/serialize.js";
 import { parseEventInput, parseObjectId } from "../utils/validation.js";
 
 export async function getMyEvents(_req: Request, res: Response): Promise<void> {
@@ -11,9 +12,10 @@ export async function getMyEvents(_req: Request, res: Response): Promise<void> {
     const data = await events
       .find({ creatorEmail: user.email })
       .sort({ date: 1 })
+      .limit(200)
       .toArray();
 
-    res.json({ success: true, data });
+    res.json({ success: true, data: data.map(toPublicEvent) });
   } catch (error) {
     console.error("getMyEvents failed:", error);
     res.status(500).json({ success: false, message: "Could not load your events. Please try again." });
@@ -54,7 +56,11 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
     );
 
     const updated = await events.findOne({ _id: id });
-    res.json({ success: true, message: "Event updated successfully.", data: updated });
+    res.json({
+      success: true,
+      message: "Event updated successfully.",
+      data: updated ? toPublicEvent(updated) : null,
+    });
   } catch (error) {
     console.error("updateEvent failed:", error);
     res.status(500).json({ success: false, message: "Could not update the event. Please try again." });

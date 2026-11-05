@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import { eventsCollection } from "../config/collections.js";
 import type { AuthUser } from "../middleware/verify-jwt.js";
-import { parseEventInput } from "../utils/validation.js";
 import { toPublicEvent } from "../utils/serialize.js";
+import { parseEventInput } from "../utils/validation.js";
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
   const user = res.locals.user as AuthUser;
