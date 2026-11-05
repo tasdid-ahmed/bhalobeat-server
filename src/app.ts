@@ -9,8 +9,10 @@ import helmet from "helmet";
 import { verifyJWT } from "./middleware/verify-jwt.js";
 import eventRoutes from "./routes/event.routes.js";
 
-if (process.env.NODE_ENV === "production" && (!process.env.CLIENT_URL || !process.env.AUTH_URL)) {
-  throw new Error("CLIENT_URL and AUTH_URL must be set in production.");
+const { CLIENT_URL, AUTH_URL } = process.env;
+
+if (!CLIENT_URL || !AUTH_URL) {
+  throw new Error("CLIENT_URL and AUTH_URL must be set in the environment variables.");
 }
 
 const app = express();
@@ -18,7 +20,7 @@ const app = express();
 app.use(helmet());
 
 // CLIENT_URL can hold several origins, separated by commas.
-const allowedOrigins = (process.env.CLIENT_URL ?? "http://localhost:3000")
+const allowedOrigins = CLIENT_URL
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
